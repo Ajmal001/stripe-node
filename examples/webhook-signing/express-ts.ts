@@ -1,8 +1,11 @@
 import Stripe from 'stripe';
 import express from 'express';
 import bodyParser from 'body-parser';
+import dotenv from 'dotenv';
 
-const stripe = new Stripe(process.env.STRIPE_API_KEY!);
+dotenv.config();
+
+const stripe: Stripe = new Stripe(process.env.STRIPE_API_KEY!);
 
 /**
  * You'll need to make sure this is externally accessible.  ngrok (https://ngrok.com/)
@@ -34,7 +37,7 @@ app.use(
 app.post(
   '/webhooks',
   bodyParser.raw({type: 'application/json'}),
-  (req: express.Request, res: express.Response): void | express.Response => {
+  (req: express.Request, res: express.Response): express.Response | void => {
     const sig: string = req.headers['stripe-signature'] as string;
 
     let event: Stripe.Event;
@@ -50,7 +53,7 @@ app.post(
     console.log('Success:', event.id);
 
     // Return a response to acknowledge receipt of the event
-    res.json({received: true});
+    return res.json({received: true});
   }
 );
 
