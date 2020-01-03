@@ -9,10 +9,16 @@ const stripe: Stripe = new Stripe(process.env.STRIPE_API_KEY!);
 
 /**
  * You'll need to make sure this is externally accessible.  ngrok (https://ngrok.com/)
- * makes this really easy.s
+ * makes this really easy.
  *
- * To run this file, just provide your Secret API Key and Webhook Secret, like so:
- * STRIPE_API_KEY=sk_test_XXX WEBHOOK_SECRET=whsec_XXX node express.js
+ * Alternatively, you could use the stripe-cli in forward mode: https://github.com/stripe/stripe-cli
+ *
+ * To run this file, just provide your Secret API Key and Webhook Secret in a .env file in this directory like so:
+ *
+ * STRIPE_API_KEY=sk_test_XXX
+ * WEBHOOK_SECRET=whsec_XXX
+ *
+ * Then run "npm run tsc", which will convert this TypeScript file to JS and then run it
  */
 
 const webhookSecret: string = process.env.WEBHOOK_SECRET!;
