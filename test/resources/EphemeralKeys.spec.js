@@ -51,11 +51,11 @@ describe('EphemeralKey Resource', () => {
     describe('when an api version is set', () => {
       beforeEach(function() {
         this.oldVersion = stripe.getApiField('version');
-        stripe.setApiVersion('2017-05-25');
+        stripe._setApiField('version', '2017-05-25');
       });
 
       afterEach(function() {
-        stripe.setApiVersion(this.oldVersion);
+        stripe._setApiField('version', this.oldVersion);
       });
 
       it('Errors if no stripe-version is specified', () =>
@@ -69,11 +69,11 @@ describe('EphemeralKey Resource', () => {
     describe('when no api version is set', () => {
       beforeEach(function() {
         this.oldVersion = stripe.getApiField('version');
-        stripe.setApiVersion(null);
+        stripe._setApiField('version', null);
       });
 
       afterEach(function() {
-        stripe.setApiVersion(this.oldVersion);
+        stripe._setApiField('version', this.oldVersion);
       });
 
       it('Errors if no stripe-version is specified', () =>

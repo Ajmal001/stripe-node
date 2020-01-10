@@ -184,6 +184,13 @@ describe('utils', () => {
   });
 
   describe('getOptsFromArgs', () => {
+    var warner;
+    before(() => {
+      warner = process.emitWarning;
+      process.emitWarning = () => {};
+    });
+    after(() => (process.emitWarning = warner));
+
     it('handles an empty list', () => {
       expect(utils.getOptionsFromArgs([])).to.deep.equal({
         auth: null,
@@ -309,74 +316,109 @@ describe('utils', () => {
       });
     });
 
-    it('parses snake case for backwards compatibility', () => {
-      return new Promise((resolve, reject) => {
-        const args = [
-          {
-            api_key: 'sk_test_iiiiiiiiiiiiiiiiiiiiiiii',
-            idempotency_key: 'key',
-            stripe_account: 'acct_123',
-            stripe_version: '2019-08-08',
-          },
-        ];
-        const desiredWarnings = [
-          "Stripe: 'api_key' is deprecated; use 'apiKey' instead.",
-          "Stripe: 'idempotency_key' is deprecated; use 'idempotencyKey' instead.",
-          "Stripe: 'stripe_account' is deprecated; use 'stripeAccount' instead.",
-          "Stripe: 'stripe_version' is deprecated; use 'apiVersion' instead.",
-        ];
-
-        const warnings = [];
-        const onWarn = (message) => {
-          warnings.push(message);
-          if (warnings.length === desiredWarnings.length) {
-            expect(warnings).to.deep.equal(desiredWarnings);
-            resolve();
-          }
-        };
-        handleWarnings(() => {
-          expect(utils.getOptionsFromArgs(args)).to.deep.equal({
-            auth: 'sk_test_iiiiiiiiiiiiiiiiiiiiiiii',
-            headers: {
-              'Idempotency-Key': 'key',
-              'Stripe-Version': '2019-08-08',
-              'Stripe-Account': 'acct_123',
-            },
-            settings: {},
-          });
-        }, onWarn);
+    describe('expecting warnings', () => {
+      // This needs warnings, so we're restoring it for this one
+      before(() => (process.emitWarning = warner));
+      after(() => {
+        warner = process.emitWarning;
+        process.emitWarning = () => {};
       });
-    });
 
-    it('parses stripeVersion for backwards compatibility', () => {
-      return new Promise((resolve, reject) => {
+      it('parses snake case for backwards compatibility', () => {
+        return new Promise((resolve, reject) => {
+          const args = [
+            {
+              api_key: 'sk_test_iiiiiiiiiiiiiiiiiiiiiiii',
+              idempotency_key: 'key',
+              stripe_account: 'acct_123',
+              stripe_version: '2019-08-08',
+            },
+          ];
+          const desiredWarnings = [
+            "Stripe: 'api_key' is deprecated; use 'apiKey' instead.",
+            "Stripe: 'idempotency_key' is deprecated; use 'idempotencyKey' instead.",
+            "Stripe: 'stripe_account' is deprecated; use 'stripeAccount' instead.",
+            "Stripe: 'stripe_version' is deprecated; use 'apiVersion' instead.",
+          ];
+
+          const warnings = [];
+          const onWarn = (message) => {
+            warnings.push(message);
+            if (warnings.length === desiredWarnings.length) {
+              expect(warnings).to.deep.equal(desiredWarnings);
+              resolve();
+            }
+          };
+          handleWarnings(() => {
+            expect(utils.getOptionsFromArgs(args)).to.deep.equal({
+              auth: 'sk_test_iiiiiiiiiiiiiiiiiiiiiiii',
+              headers: {
+                'Idempotency-Key': 'key',
+                'Stripe-Version': '2019-08-08',
+                'Stripe-Account': 'acct_123',
+              },
+              settings: {},
+            });
+          }, onWarn);
+        });
+      });
+
+      it('parses stripeVersion for backwards compatibility', () => {
+        return new Promise((resolve, reject) => {
+          const args = [
+            {
+              apiKey: 'sk_test_iiiiiiiiiiiiiiiiiiiiiiii',
+              stripeVersion: '2019-08-08',
+            },
+          ];
+          const desiredWarnings = [
+            "Stripe: 'stripeVersion' is deprecated; use 'apiVersion' instead.",
+          ];
+
+          const warnings = [];
+          const onWarn = (message) => {
+            warnings.push(message);
+            if (warnings.length === desiredWarnings.length) {
+              expect(warnings).to.deep.equal(desiredWarnings);
+              resolve();
+            }
+          };
+          handleWarnings(() => {
+            expect(utils.getOptionsFromArgs(args)).to.deep.equal({
+              auth: 'sk_test_iiiiiiiiiiiiiiiiiiiiiiii',
+              headers: {
+                'Stripe-Version': '2019-08-08',
+              },
+              settings: {},
+            });
+          }, onWarn);
+        });
+      });
+
+      it('warns if the hash contains something that does not belong', (done) => {
         const args = [
+          {foo: 'bar'},
           {
             apiKey: 'sk_test_iiiiiiiiiiiiiiiiiiiiiiii',
-            stripeVersion: '2019-08-08',
+            idempotencyKey: 'foo',
+            apiVersion: '2010-01-10',
+            fishsticks: true,
+            custard: true,
           },
         ];
-        const desiredWarnings = [
-          "Stripe: 'stripeVersion' is deprecated; use 'apiVersion' instead.",
-        ];
 
-        const warnings = [];
-        const onWarn = (message) => {
-          warnings.push(message);
-          if (warnings.length === desiredWarnings.length) {
-            expect(warnings).to.deep.equal(desiredWarnings);
-            resolve();
+        handleWarnings(
+          () => {
+            utils.getOptionsFromArgs(args);
+          },
+          (message) => {
+            expect(message).to.equal(
+              'Stripe: Invalid options found (fishsticks, custard); ignoring.'
+            );
+
+            done();
           }
-        };
-        handleWarnings(() => {
-          expect(utils.getOptionsFromArgs(args)).to.deep.equal({
-            auth: 'sk_test_iiiiiiiiiiiiiiiiiiiiiiii',
-            headers: {
-              'Stripe-Version': '2019-08-08',
-            },
-            settings: {},
-          });
-        }, onWarn);
+        );
       });
     });
 
@@ -391,32 +433,6 @@ describe('utils', () => {
         utils.getOptionsFromArgs(args);
       }).to.throw(
         "Both 'apiVersion' and 'stripeVersion' were provided; please remove 'stripeVersion', which is deprecated."
-      );
-    });
-
-    it('warns if the hash contains something that does not belong', (done) => {
-      const args = [
-        {foo: 'bar'},
-        {
-          apiKey: 'sk_test_iiiiiiiiiiiiiiiiiiiiiiii',
-          idempotencyKey: 'foo',
-          apiVersion: '2010-01-10',
-          fishsticks: true,
-          custard: true,
-        },
-      ];
-
-      handleWarnings(
-        () => {
-          utils.getOptionsFromArgs(args);
-        },
-        (message) => {
-          expect(message).to.equal(
-            'Stripe: Invalid options found (fishsticks, custard); ignoring.'
-          );
-
-          done();
-        }
       );
     });
   });

@@ -208,6 +208,13 @@ describe('Stripe Module', function() {
   });
 
   describe('setTimeout', () => {
+    var warner;
+    before(() => {
+      warner = process.emitWarning;
+      process.emitWarning = () => {};
+    });
+    after(() => (process.emitWarning = warner));
+
     it('Should define a default equal to the node default', () => {
       expect(stripe.getApiField('timeout')).to.equal(
         http.createServer().timeout
@@ -226,6 +233,13 @@ describe('Stripe Module', function() {
   });
 
   describe('setAppInfo', () => {
+    var warner;
+    before(() => {
+      warner = process.emitWarning;
+      process.emitWarning = () => {};
+    });
+    after(() => (process.emitWarning = warner));
+
     describe('when given nothing or an empty object', () => {
       it('should unset stripe._appInfo', () => {
         stripe.setAppInfo();
