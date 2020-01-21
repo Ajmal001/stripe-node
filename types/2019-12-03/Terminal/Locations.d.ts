@@ -15,7 +15,7 @@ declare module 'stripe' {
          */
         object: 'terminal.location';
 
-        address: Location.Address;
+        address: Address;
 
         deleted?: void;
 
@@ -33,40 +33,6 @@ declare module 'stripe' {
          * Set of key-value pairs that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
          */
         metadata: Metadata;
-      }
-
-      namespace Location {
-        interface Address {
-          /**
-           * City, district, suburb, town, or village.
-           */
-          city: string | null;
-
-          /**
-           * Two-letter country code ([ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2)).
-           */
-          country: string | null;
-
-          /**
-           * Address line 1 (e.g., street, PO Box, or company name).
-           */
-          line1: string | null;
-
-          /**
-           * Address line 2 (e.g., apartment, suite, unit, or building).
-           */
-          line2: string | null;
-
-          /**
-           * ZIP or postal code.
-           */
-          postal_code: string | null;
-
-          /**
-           * State, county, province, or region.
-           */
-          state: string | null;
-        }
       }
 
       /**

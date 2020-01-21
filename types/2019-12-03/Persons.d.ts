@@ -19,7 +19,7 @@ declare module 'stripe' {
        */
       account: string;
 
-      address?: Person.Address;
+      address?: Address;
 
       /**
        * The Kana variation of the person's address (Japan only).
@@ -116,38 +116,6 @@ declare module 'stripe' {
     }
 
     namespace Person {
-      interface Address {
-        /**
-         * City, district, suburb, town, or village.
-         */
-        city: string | null;
-
-        /**
-         * Two-letter country code ([ISO 3166-1 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2)).
-         */
-        country: string | null;
-
-        /**
-         * Address line 1 (e.g., street, PO Box, or company name).
-         */
-        line1: string | null;
-
-        /**
-         * Address line 2 (e.g., apartment, suite, unit, or building).
-         */
-        line2: string | null;
-
-        /**
-         * ZIP or postal code.
-         */
-        postal_code: string | null;
-
-        /**
-         * State, county, province, or region.
-         */
-        state: string | null;
-      }
-
       interface AddressKana {
         /**
          * City/Ward.
